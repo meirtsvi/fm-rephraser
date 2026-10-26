@@ -7,7 +7,7 @@ enum RephraseError: Error {
 }
 
 enum Rephraser {
-    private static let instructions = """
+    static let defaultInstructions = """
         You are an editor. Rewrite the user's text: fix all grammar, spelling, capitalization and punctuation \
         mistakes, and rephrase awkward wording so it reads clearly and naturally.
         Keep the original meaning, tone, language and formatting (line breaks, lists). Keep it about the same length.
@@ -15,6 +15,8 @@ enum Rephraser {
         Keep every link (URL) exactly as written, character for character.
         Output only the rewritten text, with no explanations, quotes or preamble.
         """
+
+    static var instructions = defaultInstructions
 
     static func rephrase(_ text: String) async throws -> String {
         if case .unavailable(let reason) = SystemLanguageModel.default.availability {
