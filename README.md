@@ -37,11 +37,15 @@ To start it at login: System Settings → General → Login Items → **+** → 
 
 On first launch, allow FMRephraser in System Settings → Privacy & Security → Accessibility. It needs this to send ⌘C / ⌘V to the frontmost app. After reinstalling or rebuilding, you may need to remove and re-add it there.
 
+If the menu shows "Accessibility permission is missing or stale", the hotkey cannot copy or paste: choose **Open Accessibility Settings** and enable FMRephraser (or remove and re-add it after a rebuild).
+
 ## Usage
 
 1. Select text in any app.
-2. Press the hotkey (default **Ctrl+T**). The menu bar icon shows `…` while working.
+2. Press the hotkey (default **Ctrl+T**). The menu bar icon shows `…` while working, and a small "FM Rephraser in progress..." overlay appears near the bottom of the screen (it does not take focus).
 3. The selection is replaced. Your clipboard is restored afterwards.
+
+With no selection, the whole content of the focused text field is rephrased.
 
 ## Configuration
 
@@ -54,6 +58,14 @@ Edit `~/.config/fm-rephraser/config.json` (menu bar icon → Open Config), then 
 Modifiers: `ctrl`, `cmd`, `option`, `shift`. Keys: letters, digits, `space`.
 
 Note: the default Ctrl+T replaces the macOS "transpose characters" shortcut in text fields.
+
+### Custom prompt
+
+To replace the prompt sent to the model, put your own in `~/.config/fm-rephraser/instructions.txt`. It is plain text, so paste a multi-line prompt as-is, with no escaping. Menu bar icon → **Open Instructions** opens the file, creating it pre-filled with the default prompt if it does not exist yet. Choose **Reload Config** to apply changes without restarting.
+
+The file replaces the whole default prompt, so include everything you still want (for example keeping links and @mentions intact). Delete or empty the file to return to the default, which lives in `defaultInstructions` in `Sources/FMRephraser/Rephraser.swift`. Links and @mentions are still checked after every response regardless of the prompt.
+
+The on-device model has a limited context window (about 4096 tokens, covering the prompt, the selected text and the reply), so a very long prompt leaves less room for the text.
 
 ## Limitations
 
