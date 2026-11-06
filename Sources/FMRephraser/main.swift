@@ -28,6 +28,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func buildMenu(hotkeyLabel: String) {
         let menu = NSMenu()
+        let info = Bundle.main.infoDictionary
+        let buildID = info?["CFBundleVersion"] as? String ?? "unknown"
+        let buildTime = info?["FMRBuildTime"] as? String ?? "unknown"
+        menu.addItem(NSMenuItem(title: "FMRephraser \(buildID), built \(buildTime)", action: nil, keyEquivalent: ""))
         menu.addItem(NSMenuItem(title: "Hotkey: \(hotkeyLabel)", action: nil, keyEquivalent: ""))
         accessibilityItems = [
             NSMenuItem(title: "Accessibility permission is missing or stale", action: nil, keyEquivalent: ""),

@@ -39,6 +39,12 @@ On first launch, allow FMRephraser in System Settings → Privacy & Security →
 
 If the menu shows "Accessibility permission is missing or stale", the hotkey cannot copy or paste: choose **Open Accessibility Settings** and enable FMRephraser (or remove and re-add it after a rebuild).
 
+### Stable code signing
+
+Each ad-hoc signed rebuild gets a new code signature, which invalidates the Accessibility grant, so you have to remove and re-add the app after every build. To avoid this, `build.sh` signs with a stable identity named "FMRephraser Local" when one exists in your keychain, and falls back to ad-hoc signing otherwise.
+
+To create it: Keychain Access > Certificate Assistant > Create a Certificate, name it `FMRephraser Local`, Identity Type **Self Signed Root**, Certificate Type **Code Signing**. To use a different identity, set `FMR_SIGN_IDENTITY` (for example `FMR_SIGN_IDENTITY="Apple Development: Your Name" ./install.sh`). After switching to a stable identity, re-grant Accessibility once; later rebuilds keep the grant.
+
 ## Usage
 
 1. Select text in any app.
