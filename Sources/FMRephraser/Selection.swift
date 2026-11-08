@@ -42,7 +42,7 @@ enum Selection {
             press(keyV)
             try? await Task.sleep(for: .milliseconds(300)) // let the target app read the pasteboard before restoring
         } catch {
-            await ProgressHUD.hide()
+            await ProgressHUD.showError(error.localizedDescription)
             NSLog("FMRephraser: \(error)")
             NSSound.beep()
         }

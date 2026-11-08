@@ -1,9 +1,24 @@
 import Foundation
 import FoundationModels
 
-enum RephraseError: Error {
+enum RephraseError: LocalizedError {
     case modelUnavailable(String)
     case protectedTextChanged(String)
+    case unknownBackend(String)
+
+    var errorDescription: String? {
+        switch self {
+        case .modelUnavailable(let reason): return "On-device model unavailable: \(reason)"
+        case .protectedTextChanged(let token): return "Text left unchanged: the model altered \(token)"
+        case .unknownBackend(let name): return "Unknown backend \"\(name)\" in config.json (use local or remote)"
+        }
+    }
+}
+
+enum Backend {
+    case local
+    case remote(RemoteLLMConfig)
+    case invalid(Error)
 }
 
 enum Rephraser {
@@ -17,15 +32,16 @@ enum Rephraser {
         """
 
     static var instructions = defaultInstructions
+    static var backend = Backend.local
 
     static func rephrase(_ text: String) async throws -> String {
-        if case .unavailable(let reason) = SystemLanguageModel.default.availability {
-            throw RephraseError.modelUnavailable(String(describing: reason))
+        let output: String
+        switch backend {
+        case .local: output = try await rephraseOnDevice(text)
+        case .remote(let config): output = try await RemoteLLM.complete(config, instructions: instructions, text: text)
+        case .invalid(let error): throw error
         }
-
-        let session = LanguageModelSession(instructions: instructions)
-        let response = try await session.respond(to: text, options: GenerationOptions(temperature: 0.3))
-        let result = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
+        let result = output.trimmingCharacters(in: .whitespacesAndNewlines)
 
         // Links and @mentions must survive unchanged; otherwise leave the user's text alone.
         for token in protectedTokens(in: text)
@@ -37,6 +53,16 @@ enum Rephraser {
         let leading = String(text.prefix { $0.isWhitespace })
         let trailing = String(text.reversed().prefix { $0.isWhitespace }.reversed())
         return leading + result + trailing
+    }
+
+    private static func rephraseOnDevice(_ text: String) async throws -> String {
+        if case .unavailable(let reason) = SystemLanguageModel.default.availability {
+            throw RephraseError.modelUnavailable(String(describing: reason))
+        }
+
+        let session = LanguageModelSession(instructions: instructions)
+        let response = try await session.respond(to: text, options: GenerationOptions(temperature: 0.3))
+        return response.content
     }
 
     private static func protectedTokens(in text: String) -> [String] {
